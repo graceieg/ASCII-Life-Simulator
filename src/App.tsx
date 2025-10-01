@@ -80,7 +80,21 @@ const NPC_DIALOGUES = {
 };
 
 // Level configurations with progressively larger grids and more complex mechanics
-const LEVELS = [
+interface LevelConfig {
+  name: string;
+  gridSize: number;
+  walls: { x: number; y: number }[];
+  npcs: { x: number; y: number; type: string }[];
+  items: Item[];
+  enemies: Enemy[];
+  doors: Door[];
+  teleporters: Teleporter[];
+  switches: Switch[];
+  playerStart: { x: number; y: number };
+  objective: string;
+}
+
+const LEVELS: LevelConfig[] = [
   {
     name: "Training Grounds",
     gridSize: 12,
@@ -116,14 +130,14 @@ const LEVELS = [
       // Main hall walls - creating distinct rooms
       { x: 1, y: 5 }, { x: 2, y: 5 }, { x: 3, y: 5 }, { x: 4, y: 5 }, { x: 5, y: 5 }, { x: 7, y: 5 }, { x: 8, y: 5 }, { x: 9, y: 5 }, { x: 10, y: 5 }, { x: 11, y: 5 }, { x: 12, y: 5 }, { x: 13, y: 5 }, { x: 14, y: 5 },
       
-      // Red Key Room (Northwest) - sealed chamber
+      // Red Key Room (Northwest) - accessible with red key
       { x: 1, y: 6 }, { x: 1, y: 7 }, { x: 1, y: 8 }, { x: 1, y: 9 },
-      { x: 2, y: 9 }, { x: 3, y: 9 }, { x: 4, y: 9 }, { x: 5, y: 9 },
+      { x: 2, y: 9 }, { x: 4, y: 9 }, { x: 5, y: 9 }, // Leave space at x:3,y:9 for door
       { x: 5, y: 8 }, { x: 5, y: 7 }, { x: 5, y: 6 },
       
-      // Blue Key Treasure Vault (Northeast) - valuable items behind blue door
+      // Blue Key Treasure Vault (Northeast) - accessible with blue key
       { x: 9, y: 6 }, { x: 9, y: 7 }, { x: 9, y: 8 }, { x: 9, y: 9 },
-      { x: 10, y: 9 }, { x: 11, y: 9 }, { x: 12, y: 9 }, { x: 13, y: 9 }, { x: 14, y: 9 },
+      { x: 10, y: 9 }, { x: 11, y: 9 }, { x: 13, y: 9 }, { x: 14, y: 9 }, // Leave space at x:12,y:9 for door
       { x: 14, y: 8 }, { x: 14, y: 7 }, { x: 14, y: 6 },
       
       // Central maze area
@@ -181,13 +195,13 @@ const LEVELS = [
       { x: 7, y: 12, health: 2, movePattern: 'random' }
     ],
     doors: [
-      // Red Key Room entrance
-      { x: 3, y: 6, keyId: 'redkey', isOpen: false },
+      // Red Key Room entrance (top wall)
+      { x: 3, y: 9, keyId: 'redkey', isOpen: false },
       
-      // Blue Key Vault entrance  
-      { x: 12, y: 6, keyId: 'bluekey', isOpen: false },
+      // Blue Key Vault entrance (top wall)
+      { x: 12, y: 9, keyId: 'bluekey', isOpen: false },
       
-      // Boss Chamber entrance (requires green key from red room)
+      // Boss Chamber entrance (north wall, requires green key from red room)
       { x: 12, y: 11, keyId: 'greenkey', isOpen: false }
     ],
     teleporters: [
@@ -349,7 +363,7 @@ interface GameState {
   gridSize: number;
 }
 
-  const initializeLevel = (levelIndex: number) => {
+  const initializeLevel = (levelIndex: number): Omit<GameState, 'playerHealth' | 'maxHealth' | 'inventory' | 'score' | 'level' | 'maxLevel' | 'weapon' | 'gameTime' | 'message'> => {
     const levelConfig = LEVELS[levelIndex];
     const gridSize = levelConfig.gridSize;
     const grid = Array(gridSize).fill(null).map(() => Array(gridSize).fill(CELL_EMPTY));
